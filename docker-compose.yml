@@ -15,7 +15,7 @@ services:
     volumes:
       - ./backend:/app
       - backend_db:/app/db
-    command: sh -c "python manage.py migrate && python manage.py seed_data && python manage.py runserver 0.0.0.0:4000"
+    command: sh -c "python manage.py migrate && python manage.py seed_data && daphne -b 0.0.0.0 -p 4000 playlist_project.asgi:application"
     networks:
       - playlist_network
 
@@ -43,9 +43,9 @@ services:
       dockerfile: Dockerfile
     container_name: playlist_frontend
     ports:
-      - "3000:3000"
+      - "3050:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
       - NEXT_PUBLIC_WS_URL=ws://localhost:4000
     volumes:
       - ./frontend:/app
@@ -63,4 +63,3 @@ volumes:
 networks:
   playlist_network:
     driver: bridge
-

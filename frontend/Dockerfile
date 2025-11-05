@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20.18.0-alpine3.20
 
 WORKDIR /app
 
@@ -18,4 +18,3 @@ EXPOSE 3000
 
 # Start development server
 CMD ["pnpm", "dev"]
-
