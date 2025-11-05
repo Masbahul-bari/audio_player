@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: playlist_backend
+    ports:
+      - "4000:4000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - DJANGO_SETTINGS_MODULE=playlist_project.settings
+    volumes:
+      - ./backend:/app
+      - backend_db:/app/db
+    command: sh -c "python manage.py migrate && python manage.py seed_data && python manage.py runserver 0.0.0.0:4000"
+    networks:
+      - playlist_network
+
+  db_migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: playlist_migration
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - DJANGO_SETTINGS_MODULE=playlist_project.settings
+    volumes:
+      - ./backend:/app
+      - backend_db:/app/db
+    command: sh -c "python manage.py migrate && python manage.py seed_data"
+    networks:
+      - playlist_network
+    profiles:
+      - migration
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: playlist_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:4000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: sh -c "sleep 5 && pnpm dev"
+    networks:
+      - playlist_network
+
+volumes:
+  backend_db:
+
+networks:
+  playlist_network:
+    driver: bridge
+
